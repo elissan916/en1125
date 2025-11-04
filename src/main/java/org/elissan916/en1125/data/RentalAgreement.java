@@ -91,7 +91,7 @@ public record RentalAgreement(String toolCode, String toolType, String brand, in
                 "Daily rental charge: " + format.format(dailyRentalCharge) + "\n" +
                 "Charge days: " + chargeDays + "\n" +
                 "Pre-discount charge: $" + format.format(preDiscountCharge) + "\n" +
-                "Discount percent: " + discountPercent + "%%\n" +
+                "Discount percent: " + discountPercent + "%\n" +
                 "Discount amount: $" + format.format(discountAmount) + "\n" +
                 "Final charge: $" + format.format(finalCharge) + "\n";
     }

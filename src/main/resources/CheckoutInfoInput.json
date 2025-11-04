@@ -1,0 +1,9 @@
+[
+  { "toolCode": "JAKR", "rentalDays": 5, "discountPercent": 99, "checkoutDate": "2015-09-03" },
+  { "toolCode": "LADW", "rentalDays": 3, "discountPercent": 10,  "checkoutDate": "2020-07-02" },
+  { "toolCode": "CHNS", "rentalDays": 5, "discountPercent": 25,  "checkoutDate": "2015-07-02" },
+  { "toolCode": "JAKD", "rentalDays": 6, "discountPercent": 0,   "checkoutDate": "2015-09-03" },
+  { "toolCode": "JAKR", "rentalDays": 9, "discountPercent": 0,   "checkoutDate": "2015-07-02" },
+  { "toolCode": "JAKR", "rentalDays": 4, "discountPercent": 50,  "checkoutDate": "2020-07-02" }
+]
+

@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import org.elissan916.en1125.data.CheckoutInfo;
 import org.elissan916.en1125.data.Tool;
 import org.elissan916.en1125.data.ToolInfo;
+import org.elissan916.en1125.util.LocalDateTypeAdapter;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,8 +26,8 @@ public class JsonInputFileParser {
     private final String checkoutInfoInputFileName;
 
     //TODO: fix declarations
-    private Map<String,ToolInfo> toolInfoMap = new HashMap<String,ToolInfo>();
-    private Map<String,Tool> toolMap = new HashMap<String,Tool>();
+    private Map<String,ToolInfo> toolInfoMap = new HashMap<>();
+    private Map<String,Tool> toolMap = new HashMap<>();
     private List<CheckoutInfo> checkoutInfoList = new ArrayList<>();
 
     public Map<String,ToolInfo> getToolInfoMap(){
@@ -44,7 +46,7 @@ public class JsonInputFileParser {
         if (toolInfoInputFileName == null || toolInfoInputFileName.isBlank()) {
             throw new IllegalArgumentException("ToolInfo input info file name cannot be null or blank");
         }
-        this.toolInfoInputFileName = toolInfoInputFileName;;
+        this.toolInfoInputFileName = toolInfoInputFileName;
 
         if (toolInputFileName == null || toolInputFileName.isBlank()) {
             throw new IllegalArgumentException("Tool input file name cannot be null or blank");
@@ -57,7 +59,7 @@ public class JsonInputFileParser {
         this.checkoutInfoInputFileName = checkoutInfoInputFileName;
     }
 
-    protected void parseToolInfoFile() throws IOException {
+    public void parseToolInfoFile() throws IOException {
         Gson gson = new GsonBuilder().create();
         Path path = new File(toolInfoInputFileName).toPath();
 
@@ -68,7 +70,7 @@ public class JsonInputFileParser {
         }
     }
 
-    protected void parseToolFile() throws IOException {
+    public void parseToolFile() throws IOException {
         Path path = new File(this.toolInputFileName).toPath();
         Gson gson = new GsonBuilder().create();
 
@@ -79,11 +81,13 @@ public class JsonInputFileParser {
         }
     }
 
-    protected void parseCheckoutInfoFile() throws IOException {
+    public void parseCheckoutInfoFile() throws IOException {
         Path path = new File(checkoutInfoInputFileName).toPath();
-        Gson gson = new GsonBuilder().create();
+        Gson gson = new GsonBuilder().registerTypeAdapter(LocalDate.class, new LocalDateTypeAdapter()).create();
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            this.checkoutInfoList = stream(gson.fromJson(reader, CheckoutInfo[].class)).toList();
+            this.checkoutInfoList = stream(gson.fromJson(reader, CheckoutInfo[].class))
+                    .collect(Collectors.toList());
+
         }
     }
 

@@ -12,10 +12,13 @@ public class Main {
         JsonInputFileParser parser = new JsonInputFileParser("src/main/resources/ToolInfoInput.json", "src/main/resources/ToolInput.json", "src/main/resources/CheckoutInfoInput.json");
         parser.parseInputFiles();
 
+
         RentalAgreementGenerator rentalAgreementGenerator = new RentalAgreementGenerator(parser);
-        RentalAgreement[] RentalAgreementArray = rentalAgreementGenerator.generateRentalAgreements();
+        RentalAgreement rentalAgreement = rentalAgreementGenerator.generateRentalAgreement(parser.getCheckoutInfoList().getFirst());
+        System.out.println(rentalAgreement);
 
-
-
+        //TODO: Add input list functionality??
+        //List<CheckoutInfo> ciList = parser.getCheckoutInfoList();
     }
+
 }

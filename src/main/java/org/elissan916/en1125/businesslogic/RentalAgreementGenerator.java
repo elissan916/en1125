@@ -6,20 +6,23 @@ import org.elissan916.en1125.data.Tool;
 import org.elissan916.en1125.data.ToolInfo;
 import org.elissan916.en1125.parser.JsonInputFileParser;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.stream.StreamSupport.stream;
+import java.util.stream.Collectors;
 
 public class RentalAgreementGenerator {
     private final JsonInputFileParser parser;
 
-    private Map<String,ToolInfo> toolInfoMap = new HashMap<String,ToolInfo>();
-    private Map<String,Tool> toolMap= new HashMap<String,Tool>();
-    private List<CheckoutInfo> checkoutInfoList = new ArrayList<>();
-    private RentalCalendarHelper rentalCalendarHelper = new RentalCalendarHelper();
+    private static Map<String,ToolInfo> toolInfoMap = new HashMap<>();
+    private static Map<String,Tool> toolMap= new HashMap<>();
+    private final RentalCalendarHelper rentalCalendarHelper = new RentalCalendarHelper();
+    private static final DecimalFormat df = new DecimalFormat("0.00");
 
     public RentalAgreementGenerator(JsonInputFileParser parser) {
         this.parser = parser;
@@ -27,30 +30,60 @@ public class RentalAgreementGenerator {
     }
 
     private void initDataFromParser() {
-        this.toolInfoMap = parser.getToolInfoMap();
-        this.toolMap = parser.getToolMap();
-        this.checkoutInfoList = parser.getCheckoutInfoList();
+        toolInfoMap = parser.getToolInfoMap();
+        toolMap = parser.getToolMap();
+    }
+
+    private float calculatePreDiscountCharge(int chargeableDays, float dailyCharge) {
+        float preDiscountCharge = chargeableDays * dailyCharge;
+        return new BigDecimal(preDiscountCharge).setScale(2, RoundingMode.HALF_UP).floatValue();
+    }
+
+    private float calculateDiscountAmount(float preDiscountCharge, int discountPercent) {
+        float discountAmount = (preDiscountCharge * discountPercent) / 100;
+        return new BigDecimal(discountAmount).setScale(2, RoundingMode.HALF_UP).floatValue();
+    }
+
+    private float calculateFinalCharge(float preDiscountCharge, float discountAmount) {
+        return preDiscountCharge - discountAmount;
     }
 
 
-    public List<RentalAgreement> generateRentalAgreements() {
+    public RentalAgreement generateRentalAgreement(CheckoutInfo coInfo) {
+
+        LocalDate dueDate = rentalCalendarHelper.calculateDueDate(coInfo.checkoutDate(), coInfo.rentalDays());
+
+        Tool tool = toolMap.get(coInfo.toolCode());
+        ToolInfo toolInfo = toolInfoMap.get(tool.toolName());
+
+        int chargeableDays = rentalCalendarHelper.calculateChargeableDays(coInfo.checkoutDate(),
+                coInfo.rentalDays(),
+                toolInfo.weekdayCharge(),
+                toolInfo.weekendCharge(),
+                toolInfo.holidayCharge());
+
+        float preDiscountCharge = calculatePreDiscountCharge(chargeableDays, toolInfo.dailyCharge());
+
+        float discountAmount =  calculateDiscountAmount(preDiscountCharge, coInfo.discountPercent());
+
+        float finalCharge = calculateFinalCharge(preDiscountCharge, discountAmount);
+
+        return new RentalAgreement(coInfo.toolCode(), //Tool Code
+                toolMap.get(coInfo.toolCode()).toolName(), //Tool Name
+                toolMap.get(coInfo.toolCode()).brand(), //Tool Brand
+                coInfo.rentalDays(), //rental days
+                coInfo.checkoutDate(), //checkout date
+                dueDate, //Due date
+                toolInfo.dailyCharge(), //daily rental charge
+                chargeableDays, //charge days
+                preDiscountCharge, //pre-discount charge
+                coInfo.discountPercent(), //discount percent
+                discountAmount, //discount amount
+                finalCharge);//final charge
+    }
+
+    public List<RentalAgreement> generateRentalAgreements(List<CheckoutInfo> coInfoList) {
         List<RentalAgreement> rentalAgreementList = new ArrayList<>();
-
-      /*  for (int i = 0; i < checkoutInfoArray.length; i++) {
-            CheckoutInfo checkoutInfo = checkoutInfoArray[i];
-            Tool tool = findToolByCode(checkoutInfo.toolCode());
-            ToolInfo toolInfo = findToolInfoByName(tool.toolName());
-
-            rentalAgreements[i] = new RentalAgreement(tool, toolInfo, checkoutInfo);
-        } */
-
-        rentalAgreementList = checkoutInfoList.stream().map( coInfo ->
-                new RentalAgreement(coInfo.toolCode(), toolMap.get(coInfo.toolCode()).toolName(),
-                        toolMap.get(coInfo.toolCode()).brand(),
-                        toolInfoMap.get(toolMap.get(coInfo.toolCode()).toolName(
-                        ))
-            (()-> )
-
-        return rentalAgreementList;
+        return coInfoList.stream().map(this::generateRentalAgreement).collect(Collectors.toList());
     }
 }
