@@ -1,0 +1,23 @@
+[
+  {
+    "toolName": "Ladder",
+    "dailyCharge": 1.99,
+    "weekdayCharge": true,
+    "weekendCharge": true,
+    "holidayCharge": false
+  },
+  {
+    "toolName": "Chainsaw",
+    "dailyCharge": 1.49,
+    "weekdayCharge": true,
+    "weekendCharge": false,
+    "holidayCharge": true
+  },
+  {
+    "toolName": "Jackhammer",
+    "dailyCharge": 2.99,
+    "weekdayCharge": true,
+    "weekendCharge": false,
+    "holidayCharge": false
+  }
+]

@@ -2,6 +2,7 @@ package org.elissan916.en1125.parser;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.elissan916.en1125.data.CheckoutInfo;
 import org.elissan916.en1125.data.Tool;
 import org.elissan916.en1125.data.ToolInfo;
 
@@ -11,26 +12,35 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Arrays.stream;
 
 public class JsonInputFileParser {
 
     private final String toolInfoInputFileName;
     private final String toolInputFileName;
+    private final String checkoutInfoInputFileName;
 
-    private ToolInfo[] toolInfos = null;
-    private Tool[] tools = null;
+    //TODO: fix declarations
+    private Map<String,ToolInfo> toolInfoMap = new HashMap<String,ToolInfo>();
+    private Map<String,Tool> toolMap = new HashMap<String,Tool>();
+    private List<CheckoutInfo> checkoutInfoList = new ArrayList<>();
 
-    public ToolInfo[] getToolInfoArray(){
-        return toolInfos;
+    public Map<String,ToolInfo> getToolInfoMap(){
+        return toolInfoMap;
     }
 
-    public Tool[] getToolArray(){
-        return tools;
+    public Map<String, Tool> getToolMap(){
+        return toolMap;
     }
 
-    public JsonInputFileParser(String toolInfoInputFileName, String toolInputFileName) {
-        super();
+    public List<CheckoutInfo> getCheckoutInfoList(){
+        return checkoutInfoList;
+    }
 
+    public JsonInputFileParser(String toolInfoInputFileName, String toolInputFileName, String checkoutInfoInputFileName) {
         if (toolInfoInputFileName == null || toolInfoInputFileName.isBlank()) {
             throw new IllegalArgumentException("ToolInfo input info file name cannot be null or blank");
         }
@@ -40,26 +50,50 @@ public class JsonInputFileParser {
             throw new IllegalArgumentException("Tool input file name cannot be null or blank");
         }
         this.toolInputFileName = toolInputFileName;
+
+        if (checkoutInfoInputFileName == null || checkoutInfoInputFileName.isBlank()) {
+            throw new IllegalArgumentException("CheckoutInfo input file name cannot be null or blank");
+        }
+        this.checkoutInfoInputFileName = checkoutInfoInputFileName;
     }
 
-    public boolean parseToolInfoFile() throws IOException {
+    protected void parseToolInfoFile() throws IOException {
         Gson gson = new GsonBuilder().create();
         Path path = new File(toolInfoInputFileName).toPath();
 
+        //TODO: Explicitly causing IllegalStateException if toolName is not unique
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            this.toolInfos = gson.fromJson(reader, ToolInfo[].class);
+            this.toolInfoMap = Arrays.stream(gson.fromJson(reader, ToolInfo[].class))
+                    .collect(Collectors.toMap(ToolInfo::toolName, ti -> ti));
         }
-        return true;
     }
 
-    public boolean parseToolFile() throws IOException {
+    protected void parseToolFile() throws IOException {
         Path path = new File(this.toolInputFileName).toPath();
         Gson gson = new GsonBuilder().create();
 
+        //TODO: Explicitly causing IllegalStateException if toolCode is not unique
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            this.tools = gson.fromJson(reader, Tool[].class);
+            this.toolMap = Arrays.stream(gson.fromJson(reader, Tool[].class))
+                    .collect(Collectors.toMap(Tool::toolCode, t -> t));
         }
-        return true;
     }
 
+    protected void parseCheckoutInfoFile() throws IOException {
+        Path path = new File(checkoutInfoInputFileName).toPath();
+        Gson gson = new GsonBuilder().create();
+        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+            this.checkoutInfoList = stream(gson.fromJson(reader, CheckoutInfo[].class)).toList();
+        }
+    }
+
+    public void parseInputFiles() {
+        try {
+            parseToolInfoFile();
+            parseToolFile();
+            parseCheckoutInfoFile();
+        } catch (IOException e) {
+            throw new RuntimeException("Error parsing input files", e);
+        }
+    }
 }
