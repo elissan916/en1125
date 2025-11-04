@@ -8,9 +8,7 @@ import org.elissan916.en1125.parser.JsonInputFileParser;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +20,6 @@ public class RentalAgreementGenerator {
     private static Map<String,ToolInfo> toolInfoMap = new HashMap<>();
     private static Map<String,Tool> toolMap= new HashMap<>();
     private final RentalCalendarHelper rentalCalendarHelper = new RentalCalendarHelper();
-    private static final DecimalFormat df = new DecimalFormat("0.00");
 
     public RentalAgreementGenerator(JsonInputFileParser parser) {
         this.parser = parser;
@@ -83,7 +80,6 @@ public class RentalAgreementGenerator {
     }
 
     public List<RentalAgreement> generateRentalAgreements(List<CheckoutInfo> coInfoList) {
-        List<RentalAgreement> rentalAgreementList = new ArrayList<>();
         return coInfoList.stream().map(this::generateRentalAgreement).collect(Collectors.toList());
     }
 }

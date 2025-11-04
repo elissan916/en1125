@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings({"GrazieInspection", "SpellCheckingInspection"})
 public class RentalAgreementGeneratorTest {
 
     static JsonInputFileParser parser;
@@ -46,6 +47,7 @@ public class RentalAgreementGeneratorTest {
         assertThrows(Exception.class, () -> parser.parseCheckoutInfoFile());
     }
 
+    @SuppressWarnings("GrazieInspection")
     @Test
     public void testHolidayCalculations() {
         // Independence Day 2015 (July 4, 2015) was a Saturday -> observed on Friday July 3

@@ -6,6 +6,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@SuppressWarnings("GrazieInspection")
 public class RentalCalendarHelperTest {
 
     private final RentalCalendarHelper helper = new RentalCalendarHelper();

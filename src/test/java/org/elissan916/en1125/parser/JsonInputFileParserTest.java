@@ -13,6 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SuppressWarnings("SpellCheckingInspection")
 public class JsonInputFileParserTest {
 
     @Test
@@ -48,7 +49,7 @@ public class JsonInputFileParserTest {
         assertEquals("Werner", t.brand());
 
         assertEquals(1, checkoutInfoList.size());
-        CheckoutInfo ci = checkoutInfoList.get(0);
+        CheckoutInfo ci = checkoutInfoList.getFirst();
         assertEquals("LADW", ci.toolCode());
         assertEquals(LocalDate.of(2020,9,3), ci.checkoutDate());
     }
