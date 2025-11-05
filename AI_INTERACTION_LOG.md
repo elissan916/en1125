@@ -1,5 +1,170 @@
 # AI Interaction Log — Full Verbatim Transcript
 
+Reflections on Using AI to code this project:
+- I came up with the data model on paper first
+- I did some research using Google in addition to the interactions I had with GitHub Copilot shown below.
+- The list of websites I used are (not necessarily in order I accessed them):
+  - https://docs.github.com/en/authentication/connecting-to-github-with-ssh 
+  - https://docs.github.com/en/copilot/how-tos/configure-personal-settings/configure-in-ide?tool=jetbrains
+  - https://www.jetbrains.com/help/idea/2025.2/supported-java-versions.html?Project_Category_and_Options&keymap=Windows
+  - https://medium.com/java-tips-and-tricks/how-to-calculate-holidays-in-java-d073977926fe
+  - https://blog.codimis.com/how-to-validate-and-normalize-java-record-classes-82cae6326df8
+  - https://www.baeldung.com/java-record-keyword
+  - https://www.baeldung.com/java-records-custom-constructor
+  - https://stackoverflow.com/questions/51820133/using-data-annotation-on-java-dto-class
+  - https://medium.com/@reetesh043/java-hashset-how-to-store-unique-elements-3ce9dbf630a8
+  - https://medium.com/@AlexanderObregon/formatting-numbers-for-display-with-decimalformat-in-java-0577c0fe0b52
+  - https://search.yahoo.com/search?fr=mcafee&type=E211US105G0&p=escape+%25+in+java+print+string
+  - https://zetcode.com/java/gson/\
+  - https://stackoverflow.com/questions/63605794/is-there-any-way-of-using-records-with-inheritance
+  - https://www.baeldung.com/java-json-deserialize-record-gson
+  - https://howtodoinjava.com/java/date-time/add-subtract-business-days/
+  - https://howtodoinjava.com/gson/gson-typeadapter-for-inaccessibleobjectexception/ 
+
+- I used Copilot to help configure my IDE (IntelliJ) to work with GitHub and Maven
+- I also used Copilot to generate tests and test cases, many of which I had to fix or change
+- It made wrong assumptions about error handling
+- It didn't find many of the edge cases, despite being given several examples including the ones provided in the project description
+- Some of the autocompletes accessed the keys between Tool and ToolInfo incorrectly, making an error that was difficult to find because the types were correct and the code compiled
+- It helped me generate JSON files from the array inputs in the design document, it was pretty good at this. I did check the results though
+- Autocomplete was a little too aggressive and I found myself jumping around the file, randomly overwriting stuff, especially if I rejected the suggested changes
+
+---
+Refinement Process Example:
+- I tried to record the prompts, responses, outputs, and edits to files in the transcript below, but alas, either Copilot misunderstood my prompts or did not have access to all the data/file versions/changes that I had asked it to include
+- What data I could get from it is outlined below
+- Example (snippet from below):
+
+*User*: Generate a full junit test suite with as much test coverage as possible (as in everything under the file test/java and additions to pom.xml) for this project including the following test cases that are input via the checkoutinfoinput.json class : Test 1 Test 2 Test 3 Test 4 Test 5 Test 6 Tool code JAKR LADW CHNS JAKD JAKR JAKR Checkout date 9/3/15 7/2/20 7/2/15 9/3/15 7/2/15 7/2/20 Rental days 5 3 5 6 9 4 Discount 101% 10% 25% 0% 0% 50%
+
+*Assistant*: Created multiple test files under src/test/java and updated pom.xml with JUnit 5 dependencies; added test classes for calendar helper, rental agreement string formatting, LocalDate adapter, parser, and constructor validation.
+
+*elided*
+
+*User*: I need to test RentalCalendarHelper with JUnit tests, can you write some for me? Some that exerxie both the holiday non-charges for the two defined holidays and non charges for weekends
+
+*Assistant*: Opened RentalCalendarHelper.java, created RentalCalendarHelperTest.java with several unit tests covering holiday and weekend logic, and added it to src/test/java.
+
+*User*: I'd like to also test the toStinrg() method of RentalAgreement formats correctly. I also need to test the files JsonInputFileParser and LocalDateTypeAdapter. I woud also like the check the error checking on the inputs to the other data types CheckoutInfo, Tool, and Toolinfo . Are there any other unit tests for this program you think I need?
+
+*Assistant*: Inspected RentalAgreement.java, JsonInputFileParser.java, LocalDateTypeAdapter.java, CheckoutInfo.java, Tool.java, and created tests for RentalAgreement.toString, LocalDateTypeAdapter, JsonInputFileParser, and constructor validations. Added multiple test files.
+
+With respect to the JsonInputFileParser class, I had meant for it to add tests to exercise the logic in the newer private validation methods I had added:
+
+```java
+private void validateCheckoutDataConsistency() throws IllegalStateException {
+    for (CheckoutInfo coInfo : checkoutInfoList) {
+        if (!toolMap.containsKey(coInfo.toolCode())) {
+            throw new IllegalStateException("CheckoutInfo references unknown toolCode " + coInfo.toolCode());
+        }
+    }
+}
+```
+```java
+    private void validateToolDataConsistency() throws IllegalStateException {
+        for (Tool tool : toolMap.values()) {
+            if (!toolInfoMap.containsKey(tool.toolName())) {
+                throw new IllegalStateException("Tool with code " + tool.toolCode() + " references unknown toolName " + tool.toolName());
+            }
+        }
+    }
+```
+
+These two methods were created to validate some underlying assumptions about the data model, and data consistency between the input files/data types Tool, ToolInfo, and CheckoutInfo
+Specifically, there should not be a tool key in the ToolMap that references a toolCode that does not exist in the ToolInfoMap and there should not be a CheckoutInfo entry that references a toolCode that does not exist in the ToolMap
+It had only provided the single test in the following version of JsonInputFileParserTest.java:
+
+```java
+public class JsonInputFileParserTest {
+
+    @Test
+    void testParseValidFiles() throws Exception {
+        Path tmpDir = Files.createTempDirectory("jsontest");
+
+        String toolInfoJson = "[ { \"toolName\": \"Ladder\", \"dailyCharge\": 1.99, \"weekdayCharge\": true, \"weekendCharge\": true, \"holidayCharge\": false } ]";
+        String toolJson = "[ { \"toolCode\": \"LADW\", \"toolName\": \"Ladder\", \"brand\": \"Werner\" } ]";
+        String checkoutJson = "[ { \"toolCode\": \"LADW\", \"rentalDays\": 3, \"discountPercent\": 10, \"checkoutDate\": \"2020-09-03\" } ]";
+
+        Path toolInfoFile = tmpDir.resolve("toolinfo.json");
+        Path toolFile = tmpDir.resolve("tool.json");
+        Path checkoutFile = tmpDir.resolve("checkout.json");
+
+        Files.writeString(toolInfoFile, toolInfoJson);
+        Files.writeString(toolFile, toolJson);
+        Files.writeString(checkoutFile, checkoutJson);
+
+        JsonInputFileParser parser = new JsonInputFileParser(toolInfoFile.toString(), toolFile.toString(), checkoutFile.toString());
+        parser.parseInputFiles();
+
+        Map<String, ToolInfo> toolInfoMap = parser.getToolInfoMap();
+        Map<String, Tool> toolMap = parser.getToolMap();
+        List<CheckoutInfo> checkoutInfoList = parser.getCheckoutInfoList();
+
+        assertTrue(toolInfoMap.containsKey("Ladder"));
+        ToolInfo ti = toolInfoMap.get("Ladder");
+        assertEquals(1.99f, ti.dailyCharge());
+        assertFalse(ti.holidayCharge());
+
+        assertTrue(toolMap.containsKey("LADW"));
+        Tool t = toolMap.get("LADW");
+        assertEquals("Werner", t.brand());
+
+        assertEquals(1, checkoutInfoList.size());
+        CheckoutInfo ci = checkoutInfoList.get(0);
+        assertEquals("LADW", ci.toolCode());
+        assertEquals(LocalDate.of(2020, 9, 3), ci.checkoutDate());
+    }
+}
+```
+Finally, I had it generate these tests that were added to the JsonInputFileParserTest.java file to cover these two new validation methods
+```java
+    @Test
+    void testParseInvalidToolCode() throws Exception {
+        Path tmpDir = Files.createTempDirectory("jsontest");
+        String toolInfoJson = "[ { \"toolName\": \"Ladder\", \"dailyCharge\": 1.99, \"weekdayCharge\": true, \"weekendCharge\": true, \"holidayCharge\": false } ]";
+        String toolJson = "[ { \"toolCode\": \"LADW\", \"toolName\": \"Ladder\", \"brand\": \"Werner\" } ]";
+        String checkoutJson = "[ { \"toolCode\": \"ABCD\", \"rentalDays\": 3, \"discountPercent\": 10, \"checkoutDate\": \"2020-09-03\" } ]";
+
+        Path toolInfoFile = tmpDir.resolve("toolinfo.json");
+        Path toolFile = tmpDir.resolve("tool.json");
+        Path checkoutFile = tmpDir.resolve("checkout.json");
+
+        Files.writeString(toolInfoFile, toolInfoJson);
+        Files.writeString(toolFile, toolJson);
+        Files.writeString(checkoutFile, checkoutJson);
+
+        assertThrows(IllegalStateException.class, () -> {
+            JsonInputFileParser parser = new JsonInputFileParser(toolInfoFile.toString(), toolFile.toString(), checkoutFile.toString());
+            parser.parseInputFiles();
+        });
+    }
+```
+```java
+    @Test
+    void testParseInvalidToolCode() throws Exception {
+        Path tmpDir = Files.createTempDirectory("jsontest");
+        String toolInfoJson = "[ { \"toolName\": \"Ladder\", \"dailyCharge\": 1.99, \"weekdayCharge\": true, \"weekendCharge\": true, \"holidayCharge\": false } ]";
+        String toolJson = "[ { \"toolCode\": \"LADW\", \"toolName\": \"Ladder\", \"brand\": \"Werner\" } ]";
+        String checkoutJson = "[ { \"toolCode\": \"ABCD\", \"rentalDays\": 3, \"discountPercent\": 10, \"checkoutDate\": \"2020-09-03\" } ]";
+
+        Path toolInfoFile = tmpDir.resolve("toolinfo.json");
+        Path toolFile = tmpDir.resolve("tool.json");
+        Path checkoutFile = tmpDir.resolve("checkout.json");
+
+        Files.writeString(toolInfoFile, toolInfoJson);
+        Files.writeString(toolFile, toolJson);
+        Files.writeString(checkoutFile, checkoutJson);
+
+        assertThrows(IllegalStateException.class, () -> {
+            JsonInputFileParser parser = new JsonInputFileParser(toolInfoFile.toString(), toolFile.toString(), checkoutFile.toString());
+            parser.parseInputFiles();
+        });
+    }
+```
+
+
+---
+
 Session saved: 2025-11-04
 
 WARNING: This file contains the full verbatim transcript of the interactive session and copies of source and resource files from the project. It will be overwritten in the workspace but no git actions (commit/push) will be performed.
