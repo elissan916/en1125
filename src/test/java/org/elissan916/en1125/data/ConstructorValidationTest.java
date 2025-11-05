@@ -6,7 +6,10 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings("SpellCheckingInspection")
+/**
+ * Tests that domain constructors validate input and throw
+ * {@link IllegalArgumentException} for invalid values.
+ */
 public class ConstructorValidationTest {
 
     @Test
@@ -38,4 +41,3 @@ public class ConstructorValidationTest {
         assertThrows(IllegalArgumentException.class, () -> new ToolInfo("Ladder", 1.99f, false, false, false));
     }
 }
-

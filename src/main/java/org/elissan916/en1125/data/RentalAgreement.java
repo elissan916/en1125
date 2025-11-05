@@ -4,15 +4,20 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Immutable data transfer object produced by the business logic. The
+ * auto-generated accessor methods from the record provide read-only access to
+ * fields describing a completed rental agreement.
+ *
+ * The {@link #toString()} implementation formats the agreement into a
+ * human-readable multi-line summary used for output in the Main class
+ */
 public record RentalAgreement(String toolCode, String toolType, String brand, int rentalDays,
                               LocalDate checkoutDate, LocalDate dueDate, float dailyRentalCharge,
                               int chargeDays, float preDiscountCharge, int discountPercent,
                               float discountAmount, float finalCharge) {
 
-    public RentalAgreement(String toolCode, String toolType, String brand, int rentalDays,
-                           LocalDate checkoutDate, LocalDate dueDate, float dailyRentalCharge,
-                           int chargeDays, float preDiscountCharge, int discountPercent,
-                           float discountAmount, float finalCharge) {
+    public RentalAgreement {
 
         if (toolCode == null || toolCode.isBlank()) {
             throw new IllegalArgumentException("Tool code cannot be null or blank");
@@ -61,19 +66,6 @@ public record RentalAgreement(String toolCode, String toolType, String brand, in
         if (finalCharge < 0) {
             throw new IllegalArgumentException("Final charge cannot be negative");
         }
-
-        this.toolCode = toolCode;
-        this.toolType = toolType;
-        this.brand = brand;
-        this.rentalDays = rentalDays;
-        this.checkoutDate = checkoutDate;
-        this.dueDate = dueDate;
-        this.dailyRentalCharge = dailyRentalCharge;
-        this.chargeDays = chargeDays;
-        this.preDiscountCharge = preDiscountCharge;
-        this.discountPercent = discountPercent;
-        this.discountAmount = discountAmount;
-        this.finalCharge = finalCharge;
     }
 
     @Override
@@ -88,7 +80,7 @@ public record RentalAgreement(String toolCode, String toolType, String brand, in
                 "Rental days: " + rentalDays + "\n" +
                 "Checkout date: " + checkoutDate.format(formatter) + "\n" +
                 "Due date: " + dueDate.format(formatter) + "\n" +
-                "Daily rental charge: " + format.format(dailyRentalCharge) + "\n" +
+                "Daily rental charge: $" + format.format(dailyRentalCharge) + "\n" +
                 "Charge days: " + chargeDays + "\n" +
                 "Pre-discount charge: $" + format.format(preDiscountCharge) + "\n" +
                 "Discount percent: " + discountPercent + "%\n" +

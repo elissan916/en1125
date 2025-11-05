@@ -6,6 +6,10 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Unit tests for {@link RentalCalendarHelper}. Exercises holiday and weekend
+ * logic for chargeable day calculations.
+ */
 @SuppressWarnings("GrazieInspection")
 public class RentalCalendarHelperTest {
 
@@ -85,4 +89,3 @@ public class RentalCalendarHelperTest {
         assertEquals(0, helper.calculateChargeableDays(checkout, -1, true, true, true));
     }
 }
-

@@ -9,13 +9,11 @@ public class RentalCalendarHelper {
     public RentalCalendarHelper() {
 
     }
-
     public LocalDate calculateDueDate(LocalDate checkoutDate, int rentalDays) {
         return checkoutDate.plusDays(rentalDays);
     }
 
     public int calculateChargeableDays(LocalDate checkoutDate, int rentalDays, boolean chargeWeekdays, boolean chargeWeekends, boolean chargeHolidays) {
-        //TODO: error checking, throw exception as needed
         if (checkoutDate == null || rentalDays <= 0) {
             return 0;
         }

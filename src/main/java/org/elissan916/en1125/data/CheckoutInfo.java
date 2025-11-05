@@ -2,8 +2,17 @@ package org.elissan916.en1125.data;
 
 import java.time.LocalDate;
 
+/**
+ * Represents a single checkout request parsed from input. Validation is
+ * performed in the compact canonical constructor.
+ *
+ * @param toolCode short tool code (must be non-null/non-blank)
+ * @param rentalDays number of rental days (> 0)
+ * @param discountPercent discount percent [0..100]
+ * @param checkoutDate checkout date (must be non-null)
+ */
 public record CheckoutInfo(String toolCode, int rentalDays, int discountPercent, LocalDate checkoutDate) {
-    public CheckoutInfo(String toolCode, int rentalDays, int discountPercent, LocalDate checkoutDate) {
+    public CheckoutInfo {
         if (toolCode == null || toolCode.isBlank()) {
             throw new IllegalArgumentException("Tool code cannot be null or blank");
         }
@@ -19,10 +28,5 @@ public record CheckoutInfo(String toolCode, int rentalDays, int discountPercent,
         if (checkoutDate == null) {
             throw new IllegalArgumentException("Checkout date cannot be null");
         }
-
-        this.toolCode = toolCode;
-        this.rentalDays = rentalDays;
-        this.discountPercent = discountPercent;
-        this.checkoutDate = checkoutDate;
     }
 }

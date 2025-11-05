@@ -6,7 +6,9 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SuppressWarnings("SpellCheckingInspection")
+/**
+ * Unit tests for {@link RentalAgreement} string formatting and validation.
+ */
 public class RentalAgreementTest {
 
     @Test
@@ -32,7 +34,7 @@ public class RentalAgreementTest {
                 "Rental days: 5\n" +
                 "Checkout date: 09/03/20\n" +
                 "Due date: 09/08/20\n" +
-                "Daily rental charge: 2.50\n" +
+                "Daily rental charge: $2.50\n" +
                 "Charge days: 3\n" +
                 "Pre-discount charge: $7.50\n" +
                 "Discount percent: 10%\n" +
@@ -42,4 +44,3 @@ public class RentalAgreementTest {
         assertEquals(expected, ra.toString());
     }
 }
-

@@ -8,6 +8,9 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Unit tests for {@link LocalDateTypeAdapter} deserialization.
+ */
 public class LocalDateTypeAdapterTest {
 
     @Test
@@ -17,4 +20,3 @@ public class LocalDateTypeAdapterTest {
         assertEquals(LocalDate.of(2020, 9, 3), ld);
     }
 }
-

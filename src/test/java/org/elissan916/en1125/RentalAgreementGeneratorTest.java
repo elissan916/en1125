@@ -18,6 +18,10 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Integration-style unit tests that exercise the end-to-end agreement
+ * generation flow using small sample JSON inputs.
+ */
 @SuppressWarnings("SpellCheckingInspection")
 public class RentalAgreementGeneratorTest {
 

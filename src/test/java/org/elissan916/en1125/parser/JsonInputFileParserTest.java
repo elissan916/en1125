@@ -13,7 +13,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings("SpellCheckingInspection")
+/**
+ * Tests that the {@link JsonInputFileParser} correctly reads tool, tool-info,
+ * and checkout JSON files and maps them into domain objects.
+ */
 public class JsonInputFileParserTest {
 
     @Test
@@ -49,7 +52,7 @@ public class JsonInputFileParserTest {
         assertEquals("Werner", t.brand());
 
         assertEquals(1, checkoutInfoList.size());
-        CheckoutInfo ci = checkoutInfoList.getFirst();
+        CheckoutInfo ci = checkoutInfoList.get(0);
         assertEquals("LADW", ci.toolCode());
         assertEquals(LocalDate.of(2020,9,3), ci.checkoutDate());
     }
@@ -97,4 +100,3 @@ public class JsonInputFileParserTest {
         });
     }
 }
-
