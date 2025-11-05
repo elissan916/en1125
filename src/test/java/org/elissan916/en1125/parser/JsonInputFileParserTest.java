@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class JsonInputFileParserTest {
 
     @Test
-    void testParseFiles() throws Exception {
+    void testParseValidFiles() throws Exception {
         Path tmpDir = Files.createTempDirectory("jsontest");
 
         String toolInfoJson = "[ { \"toolName\": \"Ladder\", \"dailyCharge\": 1.99, \"weekdayCharge\": true, \"weekendCharge\": true, \"holidayCharge\": false } ]";
@@ -52,6 +52,49 @@ public class JsonInputFileParserTest {
         CheckoutInfo ci = checkoutInfoList.getFirst();
         assertEquals("LADW", ci.toolCode());
         assertEquals(LocalDate.of(2020,9,3), ci.checkoutDate());
+    }
+
+    @Test
+    void testParseInvalidToolName() throws Exception{
+        Path tmpDir = Files.createTempDirectory("jsontest");
+        String toolInfoJson = "[ { \"toolName\": \"Ladder\", \"dailyCharge\": 1.99, \"weekdayCharge\": true, \"weekendCharge\": true, \"holidayCharge\": false } ]";
+        String toolJson = "[ { \"toolCode\": \"ABCD\", \"toolName\": \"Hammer\", \"brand\": \"Werner\" } ]";
+        String checkoutJson = "[ { \"toolCode\": \"LADW\", \"rentalDays\": 3, \"discountPercent\": 10, \"checkoutDate\": \"2020-09-03\" } ]";
+
+        Path toolInfoFile = tmpDir.resolve("toolinfo.json");
+        Path toolFile = tmpDir.resolve("tool.json");
+        Path checkoutFile = tmpDir.resolve("checkout.json");
+
+        Files.writeString(toolInfoFile, toolInfoJson);
+        Files.writeString(toolFile, toolJson);
+        Files.writeString(checkoutFile, checkoutJson);
+
+        assertThrows(IllegalStateException.class, () -> {
+            JsonInputFileParser parser = new JsonInputFileParser(toolInfoFile.toString(), toolFile.toString(), checkoutFile.toString());
+            parser.parseInputFiles();
+        });
+
+    }
+
+    @Test
+    void testParseInvalidToolCode() throws Exception{
+        Path tmpDir = Files.createTempDirectory("jsontest");
+        String toolInfoJson = "[ { \"toolName\": \"Ladder\", \"dailyCharge\": 1.99, \"weekdayCharge\": true, \"weekendCharge\": true, \"holidayCharge\": false } ]";
+        String toolJson = "[ { \"toolCode\": \"LADW\", \"toolName\": \"Ladder\", \"brand\": \"Werner\" } ]";
+        String checkoutJson = "[ { \"toolCode\": \"ABCD\", \"rentalDays\": 3, \"discountPercent\": 10, \"checkoutDate\": \"2020-09-03\" } ]";
+
+        Path toolInfoFile = tmpDir.resolve("toolinfo.json");
+        Path toolFile = tmpDir.resolve("tool.json");
+        Path checkoutFile = tmpDir.resolve("checkout.json");
+
+        Files.writeString(toolInfoFile, toolInfoJson);
+        Files.writeString(toolFile, toolJson);
+        Files.writeString(checkoutFile, checkoutJson);
+
+        assertThrows(IllegalStateException.class, () -> {
+            JsonInputFileParser parser = new JsonInputFileParser(toolInfoFile.toString(), toolFile.toString(), checkoutFile.toString());
+            parser.parseInputFiles();
+        });
     }
 }
 

@@ -25,7 +25,6 @@ public class JsonInputFileParser {
     private final String toolInputFileName;
     private final String checkoutInfoInputFileName;
 
-    //TODO: fix declarations
     private Map<String,ToolInfo> toolInfoMap = new HashMap<>();
     private Map<String,Tool> toolMap = new HashMap<>();
     private List<CheckoutInfo> checkoutInfoList = new ArrayList<>();
@@ -59,25 +58,33 @@ public class JsonInputFileParser {
         this.checkoutInfoInputFileName = checkoutInfoInputFileName;
     }
 
-    public void parseToolInfoFile() throws IOException {
+    public void parseToolInfoFile() throws IllegalStateException, IOException {
         Gson gson = new GsonBuilder().create();
         Path path = new File(toolInfoInputFileName).toPath();
 
-        //TODO: Explicitly causing IllegalStateException if toolName is not unique
+        //Throws IllegalStateException if toolName is not unique, IOException if parsing is bad
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             this.toolInfoMap = Arrays.stream(gson.fromJson(reader, ToolInfo[].class))
                     .collect(Collectors.toMap(ToolInfo::toolName, ti -> ti));
+        } catch (IllegalStateException ise) {
+            throw new IllegalStateException("Duplicate toolName found in tool info input file", ise);
+        } catch (IOException ioe) {
+            throw new IOException("Error parsing tool info input file", ioe);
         }
     }
 
-    public void parseToolFile() throws IOException {
+    public void parseToolFile() throws IllegalStateException, IOException {
         Path path = new File(this.toolInputFileName).toPath();
         Gson gson = new GsonBuilder().create();
 
-        //TODO: Explicitly causing IllegalStateException if toolCode is not unique
+        //Throws IllegalStateException if toolCode is not unique, IOException if parsing is bad
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             this.toolMap = Arrays.stream(gson.fromJson(reader, Tool[].class))
                     .collect(Collectors.toMap(Tool::toolCode, t -> t));
+        } catch (IllegalStateException ise) {
+            throw new IllegalStateException("Duplicate toolCode found in tool input file", ise);
+        } catch (IOException ioe) {
+            throw new IOException("Error parsing tool input file", ioe);
         }
     }
 
@@ -88,16 +95,32 @@ public class JsonInputFileParser {
             this.checkoutInfoList = stream(gson.fromJson(reader, CheckoutInfo[].class))
                     .collect(Collectors.toList());
 
+        } catch (IOException ioe) {
+            throw new IOException("Error parsing checkout info input file", ioe);
         }
     }
 
-    public void parseInputFiles() {
-        try {
-            parseToolInfoFile();
-            parseToolFile();
-            parseCheckoutInfoFile();
-        } catch (IOException e) {
-            throw new RuntimeException("Error parsing input files", e);
+    private void validateToolDataConsistency() throws IllegalStateException {
+        for (Tool tool : toolMap.values()) {
+            if (!toolInfoMap.containsKey(tool.toolName())) {
+                throw new IllegalStateException("Tool with code " + tool.toolCode() + " references unknown toolName " + tool.toolName());
+            }
         }
+    }
+
+    private void validateCheckoutDataConsistency() throws IllegalStateException {
+        for (CheckoutInfo coInfo : checkoutInfoList) {
+            if (!toolMap.containsKey(coInfo.toolCode())) {
+                throw new IllegalStateException("CheckoutInfo references unknown toolCode " + coInfo.toolCode());
+            }
+        }
+    }
+
+    public void parseInputFiles() throws IOException, IllegalStateException {
+        parseToolInfoFile();
+        parseToolFile();
+        validateToolDataConsistency();
+        parseCheckoutInfoFile();
+        validateCheckoutDataConsistency();
     }
 }

@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 public class RentalAgreementGenerator {
     private final JsonInputFileParser parser;
 
-    private static Map<String,ToolInfo> toolInfoMap = new HashMap<>();
-    private static Map<String,Tool> toolMap= new HashMap<>();
+    private Map<String,ToolInfo> toolInfoMap = new HashMap<>();
+    private Map<String,Tool> toolMap= new HashMap<>();
     private final RentalCalendarHelper rentalCalendarHelper = new RentalCalendarHelper();
 
     public RentalAgreementGenerator(JsonInputFileParser parser) {

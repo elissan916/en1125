@@ -4,6 +4,7 @@ import org.elissan916.en1125.businesslogic.RentalAgreementGenerator;
 import org.elissan916.en1125.businesslogic.RentalCalendarHelper;
 import org.elissan916.en1125.data.CheckoutInfo;
 import org.elissan916.en1125.data.RentalAgreement;
+import org.elissan916.en1125.data.Tool;
 import org.elissan916.en1125.data.ToolInfo;
 import org.elissan916.en1125.parser.JsonInputFileParser;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,37 +18,59 @@ import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SuppressWarnings({"GrazieInspection", "SpellCheckingInspection"})
+@SuppressWarnings("SpellCheckingInspection")
 public class RentalAgreementGeneratorTest {
 
-    static JsonInputFileParser parser;
+    static JsonInputFileParser validParser;
     static RentalAgreementGenerator generator;
     static RentalCalendarHelper calendarHelper;
+    static JsonInputFileParser invalidDiscountParser;
+    static JsonInputFileParser invalidRentalDaysParser;
 
     @BeforeAll
     public static void setup() throws Exception {
-        String base = "src/main/resources/";
-        parser = new JsonInputFileParser(base + "ToolInfoInput.json", base + "ToolInput.json", base + "CheckoutInfoInput.json");
-        // Parse tool maps only; the checkout input contains an intentionally invalid entry (101% discount)
-        parser.parseToolInfoFile();
-        parser.parseToolFile();
-        generator = new RentalAgreementGenerator(parser);
+        String base = "src/test/resources/";
+        validParser = new JsonInputFileParser(base + "ToolInfoInput.json", base + "ToolInput.json", base + "CheckoutInfoInput_valid.json");
+        validParser.parseToolInfoFile();
+        validParser.parseToolFile();
+        validParser.parseInputFiles();
+
+        invalidDiscountParser = new JsonInputFileParser(base + "ToolInfoInput.json", base + "ToolInput.json", base + "CheckoutInfoInput_invalid_discount.json");
+        invalidDiscountParser.parseToolInfoFile();
+        invalidDiscountParser.parseToolFile();
+        // Note: we do not call parseCheckoutInfoFile here to allow testing of exception throwing
+
+        invalidRentalDaysParser = new JsonInputFileParser(base + "ToolInfoInput.json", base + "ToolInput.json", base + "CheckoutInfoInput_invalid_rentaldays.json");
+        invalidRentalDaysParser.parseToolInfoFile();
+        invalidRentalDaysParser.parseToolFile();
+        // Note: we do not call parseCheckoutInfoFile here to allow testing of exception throwing
+
+        generator = new RentalAgreementGenerator(validParser);
         calendarHelper = new RentalCalendarHelper();
     }
 
     @Test
     public void testParserLoadedToolMaps() {
-        assertNotNull(parser.getToolInfoMap());
-        assertNotNull(parser.getToolMap());
+        assertNotNull(validParser.getToolInfoMap());
+        assertNotNull(validParser.getToolMap());
+    }
+
+    @Test
+    public void testParseCheckoutInfoFileLoadsValidEntries() throws Exception {
+        // The CheckoutInfoInput_valid.json contains 5 valid entries
+        validParser.parseCheckoutInfoFile();
+        assertEquals(5, validParser.getCheckoutInfoList().size());
     }
 
     @Test
     public void testParseCheckoutInfoFileThrowsForInvalidEntry() {
-        // The CheckoutInfoInput.json contains one entry with discountPercent=101 which violates validation
-        assertThrows(Exception.class, () -> parser.parseCheckoutInfoFile());
+        // The CheckoutInfoInput_invalid_discount.json contains one entry with discountPercent=101 which violates validation
+        assertThrows(Exception.class, () -> invalidDiscountParser.parseCheckoutInfoFile());
+
+        // The CheckoutInfoInput_invalid_rentaldays.json contains one entry with rentalDays=0 which violates validation
+        assertThrows(Exception.class, () -> invalidRentalDaysParser.parseCheckoutInfoFile());
     }
 
-    @SuppressWarnings("GrazieInspection")
     @Test
     public void testHolidayCalculations() {
         // Independence Day 2015 (July 4, 2015) was a Saturday -> observed on Friday July 3
@@ -93,8 +116,10 @@ public class RentalAgreementGeneratorTest {
             assertEquals(ci.rentalDays(), ra.rentalDays());
             assertEquals(ci.checkoutDate(), ra.checkoutDate());
 
-            ToolInfo toolInfo = parser.getToolInfoMap().get(parser.getToolMap().get(ci.toolCode()).toolName());
-            boolean weekdayCharge = toolInfo.weekendCharge();
+            Tool tool = validParser.getToolMap().get(ci.toolCode());
+            ToolInfo toolInfo = validParser.getToolInfoMap().get(tool.toolName());
+
+            boolean weekdayCharge = toolInfo.weekdayCharge();
             boolean holidayCharge = toolInfo.holidayCharge();
             boolean weekendCharge = toolInfo.weekendCharge();
 
@@ -123,5 +148,10 @@ public class RentalAgreementGeneratorTest {
         assertThrows(IllegalArgumentException.class, () -> new CheckoutInfo(null, 5, 10, LocalDate.now()));
         // null date
         assertThrows(IllegalArgumentException.class, () -> new CheckoutInfo("JAKR", 5, 10, null));
+        // negative discount
+        assertThrows(IllegalArgumentException.class, () -> new CheckoutInfo("JAKR", 5, -1, LocalDate.now()));
+        // blank tool code
+        assertThrows(IllegalArgumentException.class, () -> new CheckoutInfo("", 5, 10, LocalDate.now()));
+
     }
 }
